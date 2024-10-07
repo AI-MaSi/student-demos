@@ -57,7 +57,7 @@ def main(adc,pwm, controller):
             pwm.update_values(control_values)
 
             # wait a bit with the random values, as the servos might not like the constant rapid changes
-            #time.sleep(0.1)
+            #time.sleep(1.0)
         else:
             # controller is connected, use the joystick value
             joy_values = controller.read()
