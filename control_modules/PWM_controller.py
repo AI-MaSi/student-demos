@@ -211,8 +211,8 @@ class PWM_hat:
                     current_rate = 1 / time_diff
                     if current_rate >= self.input_rate_threshold:
                         self.input_count += 1
-                        # Require 5 consecutive good inputs.
-                        if self.input_count >= 5:
+                        # Require consecutive good inputs. 25% of threshold rate, rounded down
+                        if self.input_count >= int(self.input_rate_threshold * 0.25):
                             self.is_safe_state = True
                             self.input_count = 0
                     else:
@@ -288,7 +288,6 @@ class PWM_hat:
         # Handle angles if configured
         if 'angle' in self.defined_channel_types:
             self.handle_angles(self.values)
-
 
     def handle_pump(self, values):
         pump_config = self.channel_configs['pump']
@@ -417,6 +416,14 @@ class PWM_hat:
         # Update pump state immediately
         # self.handle_pump(self.values)
 
+    def toggle_pump_variable(self, bool_value):
+        """Enable/Disable pump variable sum (vs static speed)"""
+        if not isinstance(bool_value, bool):
+            print("Pump variable value must be boolean.")
+            return
+        self.pump_variable = bool_value
+        print(f"Pump variable set to: {self.pump_variable}!")
+
     def reload_config(self, config_file):
         """Update the configuration file and reinitialize the controller."""
         # Reset the controller
@@ -531,7 +538,7 @@ class ServoStub:
     @angle.setter
     def angle(self, value):
         self._angle = max(0, min(180, value))
-        print(f"Servo angle set to: {self._angle}")
+        print(f"[SIMULATION] Servo angle set to: {self._angle}")
 
 class ContinuousServoStub:
     def __init__(self):
@@ -544,5 +551,5 @@ class ContinuousServoStub:
     @throttle.setter
     def throttle(self, value):
         self._throttle = max(-1, min(1, value))
-        print(f"Continuous servo throttle set to: {self._throttle}")
+        print(f"[SIMULATION] Continuous servo throttle set to: {self._throttle}")
 

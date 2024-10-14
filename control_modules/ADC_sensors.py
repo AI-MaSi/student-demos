@@ -24,7 +24,7 @@ Usage:
 3. Use methods like read_raw(), read_scaled(), or read_filtered() to get sensor data
 4. Optionally use simulation mode for testing without physical hardware
 """
-import yaml # PyYAML
+import yaml
 import math
 import time
 import random

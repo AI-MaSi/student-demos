@@ -1,15 +1,16 @@
 # This is a simplified example of a Masi control system.
 
 # First, we import the modules we want to use
-import PWM_controller   # for servo, motor or any PWM device control
-import ADC_sensors      # for analog sensor (voltage) readings
+from control_modules import PWM_controller   # for servo, motor or any PWM device control
+from control_modules import  ADC_sensors      # for analog sensor (voltage) readings
 
 import time             # for sleeping
 import random           # for random placeholder values
 
 
 # Optional: Xbox controller
-import joystick_module
+# you can also import modules like this
+import control_modules.joystick_module as joystick_module
 
 
 # remember to have every needed libraries installed!
@@ -49,7 +50,7 @@ def main(adc,pwm, controller):
         # if the controller is connected, we use the joystick value instead
 
 
-        # tip: controller.is_connected() is boolean variable, you can print it etc.
+        # tip: controller.is_connected() gives boolean variable, you can print it etc.
         if not controller.is_connected():   # check if controller is NOT connected
 
             # update the servo angle to be a random joystick value between -1..1
@@ -73,7 +74,7 @@ def main(adc,pwm, controller):
 
         step += 1
         # Sleep time
-        time.sleep(0.2)
+        time.sleep(0.5)
 
 
 
@@ -81,7 +82,7 @@ if __name__ == '__main__':
 
     # Initialize PWM controller
     pwm = PWM_controller.PWM_hat(
-        config_file='channel_configs.yaml',  # use the config file to set up the PWM controller
+        config_file='configuration_files/PWM_config.yaml',  # use the config file to set up the PWM controller
         simulation_mode=True,
         # with simulation mode enabled, you can mess around with the system without the correct hardware
         input_rate_threshold=1,
@@ -91,7 +92,7 @@ if __name__ == '__main__':
 
     # Initialize ADC sensors
     adc = ADC_sensors.ADC_hat(
-        config_file='sensor_configs.yaml',  # use the config file to set up the ADC sensors
+        config_file='configuration_files/ADC_config.yaml',  # use the config file to set up the ADC sensors
         decimals=2,  # output decimal points
         simulation_mode=True
     )
