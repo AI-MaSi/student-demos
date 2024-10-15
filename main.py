@@ -87,7 +87,7 @@ if __name__ == '__main__':
         # with simulation mode enabled, you can mess around with the system without the correct hardware
         input_rate_threshold=1,
         # set the safety threshold (how many updates required per second to be able to control the servos). Set to 0 to disable
-        deadzone=0.5  # set the input deadzone (how much input is required to start moving the servos).
+        deadzone= 0.5  # set the input deadzone (how much input is required to start moving the servos).
     )
 
     # Initialize ADC sensors

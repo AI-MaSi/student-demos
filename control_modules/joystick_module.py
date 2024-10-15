@@ -139,12 +139,12 @@ class XboxController:
         while not self._stop_event.is_set():
             try:
                 get_gamepad()
-                print("Controller reconnected successfully!")
+                print("[JOYSTICK] Controller reconnected successfully!")
                 self._connected = True
                 return
             except UnpluggedError:
                 attempt += 1
-                print(f"Reconnection attempt {attempt} failed. Retrying in {wait_delay} seconds...")
+                print(f"[JOYSTICK] Reconnection attempt {attempt} failed. Retrying in {wait_delay} seconds...")
                 time.sleep(wait_delay)
 
 
