@@ -4,8 +4,8 @@ This is a simplified example of a Masi control system, designed for students to 
 
 ### Nice to know:
 You'll probably are doing the project with Raspberry Pi5. The Pi5 does not support the old RPi.GPIO library, so please use e.g. lgpio instead. You can install it with:
-'''bash
-pip install rpi-lgpio
+```bash
+   pip install rpi-lgpio
    ```
 
 
