@@ -1,4 +1,21 @@
-import math
+# if inputs-library fails to detect the controller, try using evdev library instead.
+# you prob need to modify the key bindings to make your controller work properly.
+
+
+# Common evdev code variations for different controllers:
+# Axes:
+#   Left Stick X: ABS_X, ABS_RX
+#   Left Stick Y: ABS_Y, ABS_RY
+#   Right Stick X: ABS_Z, ABS_RX, ABS_GAS
+#   Right Stick Y: ABS_RZ, ABS_RY
+#   Left Trigger: ABS_BRAKE, ABS_Z
+#   Right Trigger: ABS_GAS, ABS_RZ
+#   D-Pad X: ABS_HAT0X, ABS_HAT0
+#   D-Pad Y: ABS_HAT0Y
+# Note: Some controllers may use different mappings, you might need to
+# modify the axis_map dictionary below to match your controller's layout
+
+
 import threading
 import time
 import evdev
@@ -20,8 +37,10 @@ class XboxController:
 
     # Controller constants
     STICK_MAX = 65536  # Maximum value for joysticks (16-bit)
-    STICK_CENTER = STICK_MAX // 2  # Center position (32768)
-    TRIGGER_MAX = 1024  # Maximum value for triggers
+    #STICK_MAX = 32768  # Maximum value for joysticks (15-bit unsigned)
+    TRIGGER_MAX = 1024  # Maximum value for triggers (10-bit)
+
+    STICK_CENTER = STICK_MAX // 2  # Center position
     CENTER_TOLERANCE = 350  # Dead zone size around center position
     MAX_RECONNECT_ATTEMPTS = 5
 
@@ -40,10 +59,10 @@ class XboxController:
         self.axis_map = {
             ecodes.ABS_X: 'LeftJoystickX',
             ecodes.ABS_Y: 'LeftJoystickY',
-            ecodes.ABS_RX: 'RightJoystickX',
-            ecodes.ABS_RY: 'RightJoystickY',
-            ecodes.ABS_Z: 'LeftTrigger',
-            ecodes.ABS_RZ: 'RightTrigger',
+            ecodes.ABS_BRAKE: 'LeftTrigger',
+            ecodes.ABS_GAS: 'RightTrigger',
+            ecodes.ABS_Z: 'RightJoystickX',
+            ecodes.ABS_RZ: 'RightJoystickY',
             ecodes.ABS_HAT0X: 'DPadX',
             ecodes.ABS_HAT0Y: 'DPadY'
         }
@@ -144,7 +163,7 @@ class XboxController:
                 # 0 -> -1
                 # STICK_MAX/2 -> 0
                 # STICK_MAX -> 1
-                normalized_value = (event.value / (self.STICK_MAX / 2)) #+ 1.0
+                normalized_value = (event.value / (self.STICK_MAX / 2)) - 1.0
 
                 # Print pre-deadzone value
                 #print(f"Pre-deadzone: {normalized_value}")
@@ -233,15 +252,15 @@ class XboxController:
             'LeftBumper': self.LeftBumper,
             'RightBumper': self.RightBumper,
             'A': self.A,
-            'X': self.X,
-            'Y': self.Y,
+            'X': self.Y, # flipped
+            'Y': self.X, # flipped
             'B': self.B,
             'LeftThumb': self.LeftThumb,
             'RightThumb': self.RightThumb,
             'Back': self.Back,
             'Start': self.Start,
-            'DPadY': self.DPadX,    # these need to be flipped for some reason
-            'DPadX': self.DPadY     # these need to be flipped for some reason
+            'DPadY': self.DPadY,    # these need to be flipped for some reason
+            'DPadX': self.DPadX     # these need to be flipped for some reason
         }
 
     def is_connected(self):
@@ -254,7 +273,7 @@ class XboxController:
         if self._device:
             self._device.close()
 
-
+"""
 # Example usage
 if __name__ == "__main__":
     controller = XboxController()
@@ -268,3 +287,4 @@ if __name__ == "__main__":
             time.sleep(0.1)
     except KeyboardInterrupt:
         controller.stop_monitoring()
+"""

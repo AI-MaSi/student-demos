@@ -15,7 +15,7 @@ import random   # for generating random values
 
 
 # Initialize the PWM controller
-pwm = PWM_controller.PWM_hat(config_file='configuration_files/example_PWM_config_file.yaml',  # Load the config file from the configuration_files folder
+pwm = PWM_controller.PWM_hat(config_file='../configuration_files/example_PWM_config_file.yaml',  # Load the config file from the configuration_files folder
                              input_rate_threshold=0,  # Set the safety stop threshold to 0 for testing (= disabled)
                              deadzone=0)                                                         # Set the deadzone to 0 for testing (= disabled)
                             # you could also give more arguments:

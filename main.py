@@ -1,111 +1,103 @@
-# This is a simplified example of a Masi control system.
 
-# First, we import the modules we want to use
-from control_modules import PWM_controller   # for servo, motor or any PWM device control
-from control_modules import  ADC_sensors      # for analog sensor (voltage) readings
-
-import time             # for sleeping
-import random           # for random placeholder values
-
-
-# Optional: Xbox controller
-# you can also import modules like this
-import control_modules.joystick_module as joystick_module
+# import PWM (servo controller)
+import control_modules.PWM_controller as PWM_controller
+# import joystick module (evdev-version)
+import control_modules.joystick_evdev as joystick_module
+#import time for sleep
+from time import sleep
 
 
-# remember to have every needed libraries installed!
-# pip3 install PyYAML
-# pip3 install inputs (for Xbox controller)
+def main(pwm, controller):
+    step = 0
 
-# if running with real hardware, you also need these:
-# pip3 install adafruit-circuitpython-servokit
-# ADCPi libraries: https://github.com/abelectronicsuk/ABElectronics_Python_Libraries/blob/master/ADCPi/README.md
+    pwm.print_input_mappings()
+    sleep(5)
 
-
-def main(adc,pwm, controller):
-    step = 0    # To make the prints more readable
-
-    # Main example loop
     while True:
 
-
-        if step % 10 == 0:  # print every 10th step
-            # Read raw analog voltage from all configured sensors
-            raw_sensor_values = adc.read_raw()
-            print(f"Raw values: {raw_sensor_values}")
-
-        if step % 10 == 0:  # print every 10th step
-            # Read voltage from all configured sensors, with scaling and filtering
-            sensor_values = adc.read_filtered()
-            print(f"Filtered values: {sensor_values}")
-
-
-
-        # typically the "control_values" would be a list containing every channel value for the control.
-        # e.g. control_values = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] for 8 channels
-        # the mapping of the list would need to match the configuration of the PWM controller!
-
-
-        # for this example, we give the randomly generated values to the servos
-        # if the controller is connected, we use the joystick value instead
-
-
-        # tip: controller.is_connected() gives boolean variable, you can print it etc.
-        if not controller.is_connected():   # check if controller is NOT connected
-
-            # update the servo angle to be a random joystick value between -1..1
-            control_values = random.uniform(-1, 1)  # some value between these numbers
-            pwm.update_values(control_values)
-
-            # wait a bit with the random values, as the servos might not like the constant rapid changes
-            #time.sleep(1.0)
+        if not controller.is_connected():
+            # controller not connected, do nothing
+            pass
         else:
-            # controller is connected, use the joystick value
+            # read all the joystick values
             joy_values = controller.read()
+            #print(f"joystick values: {joy_values}")
 
-            pwm.update_values(joy_values['LeftJoystickY'])
 
-        # you can see the servo angles like this:
-        print(pwm.servo_angles)
+            # we should modify the trigger values so that they can be flipped with bumper values
 
-        # to get the value without naming (for processing etc., you can use for example:
-        #example_servo_angle = pwm.servo_angles['ExampleServo1 angle']
-        #print(f"Example servo direct value: {example_servo_angle}")
+            # flip the LeftTrigger and if the LeftBumper is pressed
+            if joy_values['LeftBumper']:
+                joy_values['LeftTrigger'] = -joy_values['LeftTrigger']
+
+            # flip the RightTrigger and if the RightBumper is pressed
+            if joy_values['RightBumper']:
+                joy_values['RightTrigger'] = -joy_values['RightTrigger']
+
+
+            if joy_values['A']:
+                # example, replace with your own logic
+                # enable tracks with A button
+                pwm.set_tracks(True)
+
+            if joy_values['B']:
+                # example, replace with your own logic
+                # disable tracks with B button
+                pwm.set_tracks(False)
+
+
+            # example, increase pump stock speed
+            #if joy_values['DPadY']:
+                #pwm.update_pump(0.01, debug=True)
+
+
+
+
+            # map the joystick values to the servo controller
+            # these need to match with the ones set in the configuration file
+            controller_list = [
+                joy_values['RightJoystickX'], # scoop, index 0
+                joy_values['LeftJoystickY'],  # lift boom, index 1
+                joy_values['LeftJoystickX'],  # rotate cabin, index 2
+                joy_values['RightJoystickY'],  # tilt boom, index 3
+                joy_values['RightTrigger'],    # track R, index 4
+                joy_values['LeftTrigger'],   # track L, index 5
+            ]
+
+            #print(f"giving input: {joy_values['LeftJoystickX']}")
+            print(controller_list)
+            # update the servo controller with the new values
+            pwm.update_values(controller_list)
+
+            # print every 20 steps
+            if step % 20 == 0:
+                rate = pwm.get_average_input_rate()
+                print(f"average input rate: {rate}")
+                step = 0
 
         step += 1
-        # Sleep time
-        time.sleep(0.5)
-
+        sleep(0.01) # rough estimate of the loop time (100Hz)
 
 
 if __name__ == '__main__':
 
-    # Initialize PWM controller
+    # initialize the servo controller
+    # you don't need to give all those arguments, but you can if you want to change the default values
     pwm = PWM_controller.PWM_hat(
-        config_file='configuration_files/PWM_config.yaml',  # use the config file to set up the PWM controller
-        simulation_mode=True,
-        # with simulation mode enabled, you can mess around with the system without the correct hardware
-        input_rate_threshold=1,
-        # set the safety threshold (how many updates required per second to be able to control the servos). Set to 0 to disable
-        deadzone= 0.5  # set the input deadzone (how much input is required to start moving the servos).
-    )
-
-    # Initialize ADC sensors
-    adc = ADC_sensors.ADC_hat(
-        config_file='configuration_files/ADC_config.yaml',  # use the config file to set up the ADC sensors
-        decimals=2,  # output decimal points
-        simulation_mode=True
+        config_file='configuration_files/Own_config.yaml', # where your servo configuration is stored
+        simulation_mode=False,                             # set to True if you want to test without a servo controller
+        input_rate_threshold=10,                           # minimum input rate needed to enable the servo movement. Set to 0 to disable
+        deadzone=20,                                       # deadzone for the input values (% of the input range)
+        tracks_disabled=False,                             # set to true if you want to disable the tracked driving
+        pump_variable=True                                # set to true if you want to use the automatic pump control
     )
 
 
-    # Initialize Xbox controller
     controller = joystick_module.XboxController()
 
-
-    # Run the main loop
     try:
-        main(adc,pwm, controller)
-    except KeyboardInterrupt:
-        # Good practice is to reset the system when quitting. "finally" call also works well for this
+        # run the mainloop
+        main(pwm, controller)
+    except (KeyboardInterrupt, SystemExit):
         print("Exiting...")
         pwm.reset()
